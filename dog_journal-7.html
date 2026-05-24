@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>루이 일지</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;font-size:14px}
+.app{max-width:720px;margin:0 auto;padding:1rem}
+.header{display:flex;align-items:center;gap:10px;margin-bottom:1rem;background:#fff;border-radius:12px;border:0.5px solid #e0e0e0;padding:12px 16px}
+.avatar{width:36px;height:36px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#ccc;margin-left:auto;flex-shrink:0}
+.sync-dot.ok{background:#1D9E75}
+.sync-dot.syncing{background:#BA7517;animation:pulse 1s infinite}
+.sync-dot.error{background:#E24B4A}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.tabs{display:flex;gap:0;margin-bottom:1rem;background:#fff;border-radius:10px;border:0.5px solid #e0e0e0;padding:4px;overflow-x:auto}
+.tab{padding:7px 13px;font-size:13px;cursor:pointer;border:none;background:none;color:#666;border-radius:8px;white-space:nowrap;display:flex;align-items:center;gap:4px;flex:1;justify-content:center}
+.tab.active{background:#f0f0f0;color:#1a1a1a;font-weight:500}
+.page{display:none}.page.active{display:block}
+.section{background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:.75rem}
+.section-title{font-size:13px;font-weight:500;color:#666;margin-bottom:.75rem;display:flex;align-items:center;gap:6px}
+input[type=text],input[type=number],input[type=date],input[type=time],textarea,select{width:100%;font-size:13px;padding:7px 10px;border:0.5px solid #d0d0d0;border-radius:8px;background:#fff;color:#1a1a1a;outline:none}
+input:focus,textarea:focus,select:focus{border-color:#378ADD;box-shadow:0 0 0 2px rgba(55,138,221,0.12)}
+textarea{resize:vertical;min-height:60px;line-height:1.5}
+
+/* 수시 기록 버튼들 */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem}
+.quick-btn{padding:14px 10px;border:0.5px solid #e0e0e0;border-radius:12px;background:#fff;cursor:pointer;text-align:center;transition:all .15s}
+.quick-btn:hover{border-color:#378ADD;background:#f0f7ff}
+.quick-btn:active{transform:scale(.97)}
+.quick-btn .qicon{font-size:24px;margin-bottom:4px}
+.quick-btn .qlabel{font-size:13px;font-weight:500;color:#1a1a1a}
+.quick-btn .qsub{font-size:11px;color:#aaa;margin-top:2px}
+
+/* 오늘 기록 타임라인 */
+.timeline{padding:0}
+.tl-item{display:flex;gap:12px;padding:10px 0;border-bottom:0.5px solid #f0f0f0;align-items:flex-start}
+.tl-item:last-child{border-bottom:none}
+.tl-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tl-body{flex:1}
+.tl-type{font-size:12px;font-weight:500}
+.tl-content{font-size:13px;color:#1a1a1a;margin-top:2px}
+.tl-time{font-size:11px;color:#aaa;margin-top:2px}
+.tl-del{background:none;border:none;color:#ddd;cursor:pointer;font-size:16px;padding:4px;flex-shrink:0}
+.tl-del:hover{color:#E24B4A}
+
+/* 모달 */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.center{align-items:center}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:1.5rem;width:100%;max-width:720px;max-height:90vh;overflow-y:auto}
+.modal.center-modal{border-radius:16px;margin:1rem;max-height:80vh}
+.modal-handle{width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 1rem}
+.modal-title{font-size:16px;font-weight:500;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+label{font-size:13px;color:#666;display:block;margin-bottom:4px;margin-top:10px}
+label:first-of-type{margin-top:0}
+.save-btn{width:100%;padding:12px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;margin-top:1rem}
+.save-btn:hover{background:#333}
+.cancel-btn{width:100%;padding:10px;background:none;color:#888;border:none;font-size:13px;cursor:pointer;margin-top:6px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* 약 체크 */
+.med-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.med-item{border:0.5px solid #e0e0e0;border-radius:10px;padding:10px 12px;background:#fff;cursor:default}
+.med-item.taken{background:#E1F5EE;border-color:#1D9E75}
+.med-item.taken-partial{background:#FFF8E6;border-color:#BA7517}
+.med-name{font-size:13px;font-weight:500;margin-bottom:5px}
+.med-item.taken .med-name{color:#0F6E56}
+.med-item.taken-partial .med-name{color:#633806}
+.med-check-row{display:flex;gap:5px;flex-wrap:wrap}
+.med-check{padding:3px 10px;border:0.5px solid #d0d0d0;border-radius:20px;font-size:11px;cursor:pointer;background:#fff;color:#666;user-select:none}
+.med-check.am{background:#E6F1FB;border-color:#378ADD;color:#185FA5;font-weight:500}
+.med-check.pm{background:#EEEDFE;border-color:#7F77DD;color:#3C3489;font-weight:500}
+.med-check.once{background:#E1F5EE;border-color:#1D9E75;color:#0F6E56;font-weight:500}
+.med-note-tag{font-size:10px;color:#E24B4A;margin-bottom:4px}
+
+/* 배변 선택 */
+.poop-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.poop-opt{padding:8px 4px;text-align:center;border:0.5px solid #d0d0d0;border-radius:8px;cursor:pointer;font-size:12px;color:#666}
+.poop-opt.sel{border:2px solid #1D9E75;background:#E1F5EE;color:#0F6E56;font-weight:500}
+.poop-opt.sel.ab{border-color:#E24B4A;background:#FCEBEB;color:#A32D2D}
+
+/* 배지 */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;white-space:nowrap}
+.bg-green{background:#E1F5EE;color:#0F6E56}
+.bg-red{background:#FCEBEB;color:#A32D2D}
+.bg-blue{background:#E6F1FB;color:#185FA5}
+.bg-gray{background:#f5f5f5;color:#666}
+.bg-purple{background:#EEEDFE;color:#3C3489}
+.bg-yellow{background:#FFF8E6;color:#633806}
+
+/* 빈 상태 */
+.empty{text-align:center;padding:2rem;color:#ccc;font-size:14px;line-height:1.8}
+
+/* 통계 */
+.metric{background:#f8f8f8;border-radius:10px;padding:1rem;text-align:center}
+.metric .val{font-size:22px;font-weight:500}
+.metric .lbl{font-size:12px;color:#888;margin-top:3px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.chart-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.chart-label{font-size:12px;color:#888;width:72px;text-align:right;flex-shrink:0}
+.chart-bar{height:18px;border-radius:4px;background:#378ADD;min-width:4px}
+.chart-val{font-size:12px;color:#888}
+
+/* 캘린더 */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.cal-nav{background:#f5f5f5;border:0.5px solid #d0d0d0;border-radius:8px;padding:5px 14px;cursor:pointer;font-size:18px;line-height:1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-dow{text-align:center;font-size:11px;color:#aaa;padding:4px 0;font-weight:500}
+.cal-dow:first-child{color:#E24B4A}
+.cal-cell{min-height:52px;border:0.5px solid #e8e8e8;border-radius:8px;padding:5px 6px;cursor:pointer;background:#fff}
+.cal-cell:hover{background:#f8f8f8}
+.cal-cell.today{border:2px solid #378ADD}
+.cal-cell.has-rec{background:#f0f7ff}
+.cal-cell.selected{border:2px solid #1D9E75;background:#E1F5EE}
+.cal-cell.other-month{opacity:.3}
+.cal-cell.sun .cal-day-num{color:#E24B4A}
+.cal-cell.sat .cal-day-num{color:#378ADD}
+.cal-day-num{font-size:12px;font-weight:500;margin-bottom:2px}
+.cal-dot-row{display:flex;gap:2px;flex-wrap:wrap}
+.cal-dot{width:5px;height:5px;border-radius:50%}
+
+/* 설정 */
+.setup-box{background:#f8f9ff;border:1px solid #d0d8f0;border-radius:12px;padding:1rem;margin-bottom:1rem;font-size:13px;color:#444;line-height:1.6}
+.url-wrap{display:flex;gap:6px;margin-top:8px}
+.url-wrap input{flex:1;font-size:12px}
+.test-btn{padding:7px 12px;background:#378ADD;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap}
+
+/* 비밀번호 모달 */
+.pw-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.pw-modal{background:#fff;border-radius:16px;padding:1.75rem 1.5rem;width:300px;text-align:center}
+.pw-input{width:100%;text-align:center;font-size:20px;letter-spacing:8px;padding:10px;border:0.5px solid #d0d0d0;border-radius:8px;margin-bottom:8px}
+.pw-input.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pw-err{font-size:12px;color:#E24B4A;min-height:18px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="avatar"><i class="ti ti-dog" style="font-size:20px;color:#0F6E56"></i></div>
+  <div>
+    <div style="font-size:16px;font-weight:500">루이 일지 🐶</div>
+    <div style="font-size:12px;color:#888" id="today-str"></div>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <span style="font-size:11px;color:#aaa" id="sync-label"></span>
+    <div class="sync-dot" id="sync-dot"></div>
+    <button onclick="tryOpenSettings(this)" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;padding:2px"><i class="ti ti-settings"></i></button>
+  </div>
+</div>
+
+<!-- 탭 -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('today',this)"><i class="ti ti-pencil"></i> 오늘</button>
+  <button class="tab" onclick="switchTab('calendar',this)"><i class="ti ti-calendar"></i> 캘린더</button>
+  <button class="tab" onclick="switchTab('history',this)"><i class="ti ti-history"></i> 기록</button>
+  <button class="tab" onclick="switchTab('stats',this)"><i class="ti ti-chart-bar"></i> 통계</button>
+</div>
+
+<!-- ══ 오늘 탭 ══ -->
+<div id="page-today" class="page active">
+
+  <!-- 날짜 선택 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;padding:0 2px">
+    <div style="font-size:13px;font-weight:500" id="selected-date-label"></div>
+    <input type="date" id="entry-date" style="width:auto;font-size:12px" onchange="onDateChange()">
+  </div>
+
+  <!-- 수시 기록 버튼 -->
+  <div class="quick-grid">
+    <button class="quick-btn" onclick="openModal('med')">
+      <div class="qicon">💊</div>
+      <div class="qlabel">약 복용</div>
+      <div class="qsub" id="med-summary">탭해서 기록</div>
+    </button>
+    <button class="quick-btn" onclick="openModal('poop')">
+      <div class="qicon">🚽</div>
+      <div class="qlabel">배변</div>
+      <div class="qsub" id="poop-summary">탭해서 기록</div>
+    </button>
+    <button class="quick-btn" onclick="openModal('food')">
+      <div class="qicon">🍚</div>
+      <div class="qlabel">식사 / 간식</div>
+      <div class="qsub" id="food-summary">탭해서 기록</div>
+    </button>
+    <button class="quick-btn" onclick="openModal('walk')">
+      <div class="qicon">🦮</div>
+      <div class="qlabel">산책 / 활동</div>
+      <div class="qsub" id="walk-summary">탭해서 기록</div>
+    </button>
+    <button class="quick-btn" onclick="openModal('expense')">
+      <div class="qicon">💰</div>
+      <div class="qlabel">지출</div>
+      <div class="qsub" id="expense-summary">탭해서 기록</div>
+    </button>
+    <button class="quick-btn" onclick="openModal('memo')">
+      <div class="qicon">📝</div>
+      <div class="qlabel">메모 / 기타</div>
+      <div class="qsub">탭해서 기록</div>
+    </button>
+  </div>
+
+  <!-- 오늘 타임라인 -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-timeline"></i> 오늘 기록 <span id="today-count" style="font-size:12px;color:#aaa;font-weight:400;margin-left:auto"></span></div>
+    <div id="today-timeline"><div class="empty">아직 기록이 없어요<br>위 버튼을 탭해서 기록해 보세요 🐾</div></div>
+  </div>
+</div>
+
+<!-- ══ 캘린더 탭 ══ -->
+<div id="page-calendar" class="page">
+  <div class="section">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calMove(-1)">‹</button>
+      <div style="font-size:15px;font-weight:500" id="cal-title"></div>
+      <button class="cal-nav" onclick="calMove(1)">›</button>
+    </div>
+    <div style="margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap">
+      <span style="font-size:11px;color:#888;display:flex;align-items:center;gap:3px"><span class="cal-dot" style="background:#7F77DD"></span>약</span>
+      <span style="font-size:11px;color:#888;display:flex;align-items:center;gap:3px"><span class="cal-dot" style="background:#378ADD"></span>산책</span>
+      <span style="font-size:11px;color:#888;display:flex;align-items:center;gap:3px"><span class="cal-dot" style="background:#1D9E75"></span>식사</span>
+      <span style="font-size:11px;color:#888;display:flex;align-items:center;gap:3px"><span class="cal-dot" style="background:#E24B4A"></span>이상</span>
+      <span style="font-size:11px;color:#888;display:flex;align-items:center;gap:3px"><span class="cal-dot" style="background:#BA7517"></span>지출</span>
+    </div>
+    <div class="cal-grid" id="cal-dow-row"></div>
+    <div class="cal-grid" id="cal-body" style="margin-top:3px"></div>
+  </div>
+  <div id="cal-detail" style="display:none"></div>
+</div>
+
+<!-- ══ 기록 탭 ══ -->
+<div id="page-history" class="page">
+  <div class="section">
+    <div class="section-title"><i class="ti ti-list"></i> 전체 기록</div>
+    <div id="history-list"><div class="empty">기록이 없어요</div></div>
+  </div>
+</div>
+
+<!-- ══ 통계 탭 ══ -->
+<div id="page-stats" class="page">
+  <div class="row3" style="margin-bottom:.75rem">
+    <div class="metric"><div class="val" id="stat-days">0</div><div class="lbl">기록 일수</div></div>
+    <div class="metric"><div class="val" id="stat-expense">0</div><div class="lbl">총 지출</div></div>
+    <div class="metric"><div class="val" id="stat-walks">0</div><div class="lbl">산책 횟수</div></div>
+  </div>
+  <div class="section">
+    <div class="section-title"><i class="ti ti-pill"></i> 약 복용 현황</div>
+    <div id="med-stat"><div class="empty">기록을 쌓으면 표시돼요</div></div>
+  </div>
+  <div class="section">
+    <div class="section-title"><i class="ti ti-receipt"></i> 카테고리별 지출</div>
+    <div id="expense-chart"><div class="empty">기록을 쌓으면 표시돼요</div></div>
+  </div>
+  <div class="section">
+    <div class="section-title"><i class="ti ti-toilet-paper"></i> 배변 상태</div>
+    <div id="poop-chart"><div class="empty">기록을 쌓으면 표시돼요</div></div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<!-- ══ 모달들 ══ -->
+
+<!-- 약 복용 모달 -->
+<div class="modal-overlay" id="modal-med" style="display:none" onclick="if(event.target===this)closeModal('med')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💊 약 복용 기록</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:12px">복용한 시간대를 탭하세요</div>
+    <div class="med-grid" id="med-grid"></div>
+    <label style="margin-top:12px">복용 시간</label>
+    <input type="time" id="med-time">
+    <label>메모</label>
+    <input type="text" id="med-memo" placeholder="특이사항">
+    <button class="save-btn" onclick="saveMed()">저장</button>
+    <button class="cancel-btn" onclick="closeModal('med')">취소</button>
+  </div>
+</div>
+
+<!-- 배변 모달 -->
+<div class="modal-overlay" id="modal-poop" style="display:none" onclick="if(event.target===this)closeModal('poop')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🚽 배변 기록</div>
+    <label>종류</label>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button class="poop-opt" style="flex:1" id="poop-type-대변" onclick="selectPoopType('대변')">대변</button>
+      <button class="poop-opt" style="flex:1" id="poop-type-소변" onclick="selectPoopType('소변')">소변</button>
+      <button class="poop-opt ab" style="flex:1" id="poop-type-구토" onclick="selectPoopType('구토')">구토</button>
+    </div>
+    <label>대변 상태</label>
+    <div class="poop-grid" id="poop-status-grid">
+      <div class="poop-opt" onclick="selectPoopStatus(this,'정상')">정상</div>
+      <div class="poop-opt ab" onclick="selectPoopStatus(this,'묽음')">묽음</div>
+      <div class="poop-opt ab" onclick="selectPoopStatus(this,'설사')">설사</div>
+      <div class="poop-opt ab" onclick="selectPoopStatus(this,'혈변')">혈변</div>
+      <div class="poop-opt ab" onclick="selectPoopStatus(this,'단단함')">단단함</div>
+      <div class="poop-opt ab" onclick="selectPoopStatus(this,'점액')">점액</div>
+    </div>
+    <label>시간</label>
+    <input type="time" id="poop-time">
+    <label>메모</label>
+    <input type="text" id="poop-memo" placeholder="특이사항, 색상 등">
+    <label>사진</label>
+    <div style="border:0.5px dashed #bbb;border-radius:8px;padding:.75rem;text-align:center;color:#aaa;font-size:13px;position:relative;cursor:pointer">
+      <input type="file" accept="image/*" id="poop-photo" style="position:absolute;inset:0;opacity:0;cursor:pointer">
+      <i class="ti ti-camera"></i> 사진 추가
+    </div>
+    <button class="save-btn" onclick="savePoop()">저장</button>
+    <button class="cancel-btn" onclick="closeModal('poop')">취소</button>
+  </div>
+</div>
+
+<!-- 식사 모달 -->
+<div class="modal-overlay" id="modal-food" style="display:none" onclick="if(event.target===this)closeModal('food')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🍚 식사 / 간식 기록</div>
+    <label>음식</label>
+    <input type="text" id="food-name" placeholder="예: 로얄캐닌 드라이">
+    <label>양</label>
+    <input type="text" id="food-amount" placeholder="예: 1컵, 50g">
+    <label>종류</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="food-type-btns">
+      <button class="poop-opt" onclick="selectFoodType(this,'사료')">사료</button>
+      <button class="poop-opt" onclick="selectFoodType(this,'간식')">간식</button>
+      <button class="poop-opt" onclick="selectFoodType(this,'영양제')">영양제</button>
+      <button class="poop-opt" onclick="selectFoodType(this,'기타')">기타</button>
+    </div>
+    <label>시간</label>
+    <input type="time" id="food-time">
+    <label>메모</label>
+    <input type="text" id="food-memo" placeholder="특이사항">
+    <button class="save-btn" onclick="saveFood()">저장</button>
+    <button class="cancel-btn" onclick="closeModal('food')">취소</button>
+  </div>
+</div>
+
+<!-- 산책 모달 -->
+<div class="modal-overlay" id="modal-walk" style="display:none" onclick="if(event.target===this)closeModal('walk')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🦮 산책 / 활동 기록</div>
+    <label>활동 종류</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="walk-type-btns">
+      <button class="poop-opt" onclick="selectWalkType(this,'산책 (짧게)')">산책 (짧게)</button>
+      <button class="poop-opt" onclick="selectWalkType(this,'산책 (보통)')">산책 (보통)</button>
+      <button class="poop-opt" onclick="selectWalkType(this,'산책 (길게)')">산책 (길게)</button>
+      <button class="poop-opt" onclick="selectWalkType(this,'야외 놀이')">야외 놀이</button>
+    </div>
+    <label>시간 (분)</label>
+    <input type="number" id="walk-min" placeholder="예: 30" min="0">
+    <label>시작 시간</label>
+    <input type="time" id="walk-time">
+    <label>메모</label>
+    <input type="text" id="walk-memo" placeholder="날씨, 특이사항 등">
+    <button class="save-btn" onclick="saveWalk()">저장</button>
+    <button class="cancel-btn" onclick="closeModal('walk')">취소</button>
+  </div>
+</div>
+
+<!-- 지출 모달 -->
+<div class="modal-overlay" id="modal-expense" style="display:none" onclick="if(event.target===this)closeModal('expense')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💰 지출 기록</div>
+    <label>항목</label>
+    <input type="text" id="expense-name" placeholder="예: 광견병 접종">
+    <label>카테고리</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="expense-cat-btns">
+      <button class="poop-opt" onclick="selectExpCat(this,'병원')">병원</button>
+      <button class="poop-opt" onclick="selectExpCat(this,'사료')">사료</button>
+      <button class="poop-opt" onclick="selectExpCat(this,'간식')">간식</button>
+      <button class="poop-opt" onclick="selectExpCat(this,'용품')">용품</button>
+      <button class="poop-opt" onclick="selectExpCat(this,'미용')">미용</button>
+      <button class="poop-opt" onclick="selectExpCat(this,'훈련')">훈련</button>
+      <button class="poop-opt" onclick="selectExpCat(this,'기타')">기타</button>
+    </div>
+    <label>금액 (원)</label>
+    <input type="number" id="expense-amount" placeholder="0" min="0">
+    <label>시간</label>
+    <input type="time" id="expense-time">
+    <label>메모</label>
+    <input type="text" id="expense-memo" placeholder="특이사항">
+    <button class="save-btn" onclick="saveExpense()">저장</button>
+    <button class="cancel-btn" onclick="closeModal('expense')">취소</button>
+  </div>
+</div>
+
+<!-- 메모 모달 -->
+<div class="modal-overlay" id="modal-memo" style="display:none" onclick="if(event.target===this)closeModal('memo')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📝 메모</div>
+    <label>내용</label>
+    <textarea id="memo-content" placeholder="오늘 루이 상태, 특이사항 등 자유롭게 기록"></textarea>
+    <label>시간</label>
+    <input type="time" id="memo-time">
+    <button class="save-btn" onclick="saveMemo()">저장</button>
+    <button class="cancel-btn" onclick="closeModal('memo')">취소</button>
+  </div>
+</div>
+
+<!-- 설정 모달 -->
+<div class="modal-overlay center" id="modal-settings" style="display:none" onclick="if(event.target===this)closeModal('settings')">
+  <div class="modal center-modal">
+    <div class="modal-title"><i class="ti ti-settings" style="color:#378ADD"></i> 설정</div>
+    <div class="setup-box">
+      Apps Script URL을 입력하면 구글 시트와 자동 연동돼요.
+      <div class="url-wrap">
+        <input type="text" id="sheet-url" placeholder="https://script.google.com/macros/s/...">
+        <button class="test-btn" onclick="testConnection()">테스트</button>
+      </div>
+      <div id="url-status" style="font-size:12px;margin-top:6px;display:none"></div>
+    </div>
+    <button class="save-btn" onclick="saveSheetUrl()">URL 저장</button>
+    <div style="margin-top:12px">
+      <div style="font-size:13px;font-weight:500;margin-bottom:6px;color:#666">데이터 관리</div>
+      <button class="save-btn" style="background:#378ADD" onclick="loadFromSheet()"><i class="ti ti-download"></i> 시트에서 불러오기</button>
+    </div>
+    <button class="cancel-btn" onclick="closeModal('settings')">닫기</button>
+  </div>
+</div>
+
+<!-- 비밀번호 모달 -->
+<div class="pw-overlay" id="pw-overlay" style="display:none" onclick="if(event.target===this)closePwModal()">
+  <div class="pw-modal">
+    <div style="font-size:28px;margin-bottom:8px">🔒</div>
+    <div style="font-size:15px;font-weight:500;margin-bottom:4px">관리자 설정</div>
+    <div style="font-size:13px;color:#888;margin-bottom:16px">비밀번호를 입력해주세요</div>
+    <input class="pw-input" type="password" id="pw-input" maxlength="10" placeholder="••••"
+      onkeydown="if(event.key==='Enter')checkPw()"
+      oninput="document.getElementById('pw-err').textContent=''">
+    <div class="pw-err" id="pw-err"></div>
+    <button class="save-btn" onclick="checkPw()">확인</button>
+    <button class="cancel-btn" onclick="closePwModal()">취소</button>
+  </div>
+</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzThY5ZXvzn_TX1tm4yTX1L5lB6rcPcfr0yuSc6GR1SktAgOqng_id2c5iszS1NSh81rg/exec';
+const SETTINGS_PW = 'louis2024';
+
+const MED_LIST = [
+  {id:'slurry',   name:'슬러지약',   times:['아침','저녁'], type:'regular'},
+  {id:'omega3',   name:'오메가3',    times:['한번'],        type:'regular'},
+  {id:'canoptic', name:'카놉틱',     times:['한번'],        type:'regular'},
+  {id:'activate', name:'엑티베이트', times:['한번'],        type:'regular'},
+  {id:'bladder',  name:'방광영양제', times:['한번'],        type:'regular'},
+  {id:'sadenin',  name:'사데닌',     times:['한번'],        type:'regular'},
+  {id:'stomach',  name:'위장약',     times:['아침','저녁'], type:'conditional', note:'필요시만'},
+  {id:'wellcare', name:'웰케어',     times:['한번'],        type:'regular'},
+];
+
+// ── 상태 ──────────────────────────────────────────────────────
+const today = new Date();
+const pad = n => String(n).padStart(2,'0');
+const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+let selectedDate = todayStr;
+let medState = {};
+MED_LIST.forEach(m => medState[m.id] = []);
+let poopTypeVal = '', poopStatusVal = '', foodTypeVal = '', walkTypeVal = '', expCatVal = '';
+let settingsUnlocked = false;
+let calYear = today.getFullYear(), calMonth = today.getMonth(), selectedCalDate = null;
+
+// 로컬 기록 저장소: { 'YYYY-MM-DD': [{id, type, ...}, ...] }
+let localDB = JSON.parse(localStorage.getItem('louisDB') || '{}');
+
+function saveLocalDB() { localStorage.setItem('louisDB', JSON.stringify(localDB)); }
+function getRecords(date) { return localDB[date] || []; }
+function addRecord(date, record) {
+  if (!localDB[date]) localDB[date] = [];
+  record.id = Date.now() + Math.random();
+  record.date = date;
+  localDB[date].push(record);
+  saveLocalDB();
+  return record;
+}
+function deleteRecord(date, id) {
+  if (!localDB[date]) return;
+  localDB[date] = localDB[date].filter(r => r.id != id);
+  saveLocalDB();
+}
+
+// ── 초기화 ────────────────────────────────────────────────────
+document.getElementById('today-str').textContent = today.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+document.getElementById('entry-date').value = todayStr;
+updateDateLabel();
+buildMedGrid();
+renderTimeline();
+updateSummaries();
+// URL 초기 로드
+const storedUrl = localStorage.getItem('sheetUrl') || SHEET_URL;
+localStorage.setItem('sheetUrl', storedUrl);
+document.getElementById('sheet-url').value = storedUrl;
+// URL 있으면 바로 연결됨으로 표시
+if(storedUrl) setSyncStatus('ok');
+else setSyncStatus('');
+
+// 시간 기본값 설정
+function nowTime() {
+  const n = new Date();
+  return `${pad(n.getHours())}:${pad(n.getMinutes())}`;
+}
+
+// ── 싱크 상태 ─────────────────────────────────────────────────
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  dot.className = 'sync-dot';
+  if(state==='ok'){dot.classList.add('ok');label.textContent='시트 연결됨';}
+  else if(state==='syncing'){dot.classList.add('syncing');label.textContent='저장 중...';}
+  else if(state==='error'){dot.classList.add('error');label.textContent='시트 오류';}
+  else if(state==='checking'){label.textContent='확인 중...';}
+  else{label.textContent='시트 미연결';}
+}
+
+async function checkSheetConnection() {
+  const url = localStorage.getItem('sheetUrl');
+  if(!url){ setSyncStatus(''); return; }
+  try {
+    // no-cors라 응답 못 읽으므로 URL이 있으면 연결된 것으로 표시
+    await fetch(url + '?check=1', { method:'GET', mode:'no-cors' });
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('error');
+  }
+}
+
+function sendToSheet(record) {
+  const url = localStorage.getItem('sheetUrl');
+  if(!url) return;
+  setSyncStatus('syncing');
+  const payload = {
+    action: 'save',
+    date: record.date || '',
+    who: record.who || '',
+    type: record.type || '',
+    content: record.content || '',
+    category: record.category || '',
+    amount: record.amount || '',
+    time: record.time || '',
+    memo: record.memo || ''
+  };
+  fetch(url, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  }).then(() => {
+    setSyncStatus('ok');
+  }).catch(() => {
+    setSyncStatus('error');
+  });
+}
+
+// ── 탭 전환 ───────────────────────────────────────────────────
+function switchTab(t,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-'+t).classList.add('active');
+  if(t==='calendar') renderCalendar();
+  if(t==='history') renderHistory();
+  if(t==='stats') renderStats();
+}
+
+// ── 날짜 ──────────────────────────────────────────────────────
+function onDateChange(){
+  selectedDate = document.getElementById('entry-date').value;
+  updateDateLabel();
+  renderTimeline();
+  updateSummaries();
+}
+function updateDateLabel(){
+  const d = new Date(selectedDate+'T00:00:00');
+  const label = selectedDate===todayStr ? '오늘' : d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+  document.getElementById('selected-date-label').textContent = label;
+}
+
+// ── 타임라인 렌더 ─────────────────────────────────────────────
+const TYPE_META = {
+  '약복용':  {icon:'💊', color:'#EEEDFE', label:'약 복용'},
+  '배변':    {icon:'🚽', color:'#f5f5f5', label:'배변'},
+  '구토':    {icon:'🤮', color:'#FCEBEB', label:'구토'},
+  '식사':    {icon:'🍚', color:'#E1F5EE', label:'식사'},
+  '간식':    {icon:'🦴', color:'#FFF8E6', label:'간식'},
+  '산책':    {icon:'🦮', color:'#E6F1FB', label:'산책'},
+  '지출':    {icon:'💰', color:'#f5f5f5', label:'지출'},
+  '메모':    {icon:'📝', color:'#f5f5f5', label:'메모'},
+};
+
+function renderTimeline() {
+  const records = getRecords(selectedDate).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const el = document.getElementById('today-timeline');
+  const count = document.getElementById('today-count');
+  if(!records.length){
+    el.innerHTML='<div class="empty">아직 기록이 없어요<br>위 버튼을 탭해서 기록해 보세요 🐾</div>';
+    count.textContent='';
+    return;
+  }
+  count.textContent = records.length+'건';
+  el.innerHTML = records.map(r=>{
+    const meta = TYPE_META[r.type] || {icon:'📌',color:'#f5f5f5',label:r.type};
+    return `<div class="tl-item">
+      <div class="tl-icon" style="background:${meta.color}">${meta.icon}</div>
+      <div class="tl-body">
+        <div class="tl-type">${meta.label}${r.category?' · '+r.category:''}</div>
+        <div class="tl-content">${r.content||''}</div>
+        ${r.memo?`<div style="font-size:12px;color:#aaa;margin-top:2px">${r.memo}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        <div class="tl-time">${r.time||''}</div>
+        <button class="tl-del" onclick="deleteEntry('${r.id}')"><i class="ti ti-x"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteEntry(id){
+  if(!confirm('이 기록을 삭제할까요?')) return;
+  deleteRecord(selectedDate, id);
+  renderTimeline();
+  updateSummaries();
+}
+
+function updateSummaries(){
+  const records = getRecords(selectedDate);
+  const medRecs = records.filter(r=>r.type==='약복용');
+  document.getElementById('med-summary').textContent = medRecs.length ? medRecs.length+'회 기록됨' : '탭해서 기록';
+  const poopRecs = records.filter(r=>r.type==='배변'||r.type==='구토');
+  document.getElementById('poop-summary').textContent = poopRecs.length ? poopRecs.length+'회 기록됨' : '탭해서 기록';
+  const foodRecs = records.filter(r=>r.type==='식사'||r.type==='간식');
+  document.getElementById('food-summary').textContent = foodRecs.length ? foodRecs.length+'회 기록됨' : '탭해서 기록';
+  const walkRecs = records.filter(r=>r.type==='산책');
+  document.getElementById('walk-summary').textContent = walkRecs.length ? walkRecs.length+'회 기록됨' : '탭해서 기록';
+  const expRecs = records.filter(r=>r.type==='지출');
+  const expTotal = expRecs.reduce((a,b)=>a+(parseInt(b.amount)||0),0);
+  document.getElementById('expense-summary').textContent = expTotal ? expTotal.toLocaleString()+'원' : '탭해서 기록';
+}
+
+// ── 모달 ──────────────────────────────────────────────────────
+function openModal(type){
+  // 시간 기본값
+  const t = nowTime();
+  if(type==='med'){ buildMedGrid(); document.getElementById('med-time').value=t; document.getElementById('med-memo').value=''; }
+  if(type==='poop'){ poopTypeVal=''; poopStatusVal=''; document.querySelectorAll('#modal-poop .poop-opt').forEach(b=>b.classList.remove('sel')); document.getElementById('poop-time').value=t; document.getElementById('poop-memo').value=''; }
+  if(type==='food'){ foodTypeVal=''; document.querySelectorAll('#food-type-btns .poop-opt').forEach(b=>b.classList.remove('sel')); document.getElementById('food-name').value=''; document.getElementById('food-amount').value=''; document.getElementById('food-time').value=t; document.getElementById('food-memo').value=''; }
+  if(type==='walk'){ walkTypeVal=''; document.querySelectorAll('#walk-type-btns .poop-opt').forEach(b=>b.classList.remove('sel')); document.getElementById('walk-min').value=''; document.getElementById('walk-time').value=t; document.getElementById('walk-memo').value=''; }
+  if(type==='expense'){ expCatVal=''; document.querySelectorAll('#expense-cat-btns .poop-opt').forEach(b=>b.classList.remove('sel')); document.getElementById('expense-name').value=''; document.getElementById('expense-amount').value=''; document.getElementById('expense-time').value=t; document.getElementById('expense-memo').value=''; }
+  if(type==='memo'){ document.getElementById('memo-content').value=''; document.getElementById('memo-time').value=t; }
+  document.getElementById('modal-'+type).style.display='flex';
+}
+function closeModal(type){ document.getElementById('modal-'+type).style.display='none'; }
+
+// ── 약 ────────────────────────────────────────────────────────
+function buildMedGrid(){
+  MED_LIST.forEach(m => medState[m.id] = []);
+  const grid = document.getElementById('med-grid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  MED_LIST.forEach(med=>{
+    const div = document.createElement('div');
+    div.className='med-item'; div.id='meditem-'+med.id;
+    const timesHtml = med.times.map(t=>`<span class="med-check" data-id="${med.id}" data-t="${t}" onclick="toggleMed('${med.id}','${t}')">${t}</span>`).join('');
+    div.innerHTML=`<div class="med-name">${med.name}</div>${med.note?`<div class="med-note-tag">${med.note}</div>`:''}<div class="med-check-row">${timesHtml}</div>`;
+    grid.appendChild(div);
+  });
+}
+function toggleMed(id,t){
+  const arr=medState[id]; const idx=arr.indexOf(t);
+  if(idx>=0) arr.splice(idx,1); else arr.push(t);
+  const item=document.getElementById('meditem-'+id);
+  if(!item) return;
+  item.querySelectorAll('.med-check').forEach(s=>{
+    const st=s.getAttribute('data-t'); s.className='med-check';
+    if(arr.includes(st)){ if(st==='아침')s.classList.add('am'); else if(st==='저녁')s.classList.add('pm'); else s.classList.add('once'); }
+  });
+  const med=MED_LIST.find(m=>m.id===id);
+  item.className='med-item';
+  if(arr.length>0){ if(med.times.length>1&&arr.length<med.times.length) item.classList.add('taken-partial'); else item.classList.add('taken'); }
+}
+async function saveMed(){
+  const taken = MED_LIST.filter(m=>medState[m.id].length>0).map(m=>`${m.name}(${medState[m.id].join('·')})`);
+  if(!taken.length){ alert('복용한 약을 선택해주세요'); return; }
+  const record = {
+    type:'약복용', time:document.getElementById('med-time').value,
+    content: taken.join(', '), memo:document.getElementById('med-memo').value,
+  };
+  const saved = addRecord(selectedDate, record);
+  sendToSheet(saved);
+  closeModal('med'); renderTimeline(); updateSummaries();
+}
+
+// ── 배변 ──────────────────────────────────────────────────────
+function selectPoopType(val){
+  poopTypeVal=val;
+  document.querySelectorAll('[id^=poop-type-]').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('poop-type-'+val)?.classList.add('sel');
+}
+function selectPoopStatus(el,val){ document.querySelectorAll('#poop-status-grid .poop-opt').forEach(b=>b.classList.remove('sel')); el.classList.add('sel'); poopStatusVal=val; }
+async function savePoop(){
+  if(!poopTypeVal){ alert('종류를 선택해주세요'); return; }
+  const type = poopTypeVal==='구토'?'구토':'배변';
+  const content = poopTypeVal + (poopStatusVal?' · '+poopStatusVal:'');
+  const record = { type, time:document.getElementById('poop-time').value, content, category:poopStatusVal, memo:document.getElementById('poop-memo').value };
+  const saved = addRecord(selectedDate, record);
+  sendToSheet(saved);
+  closeModal('poop'); renderTimeline(); updateSummaries();
+}
+
+// ── 식사 ──────────────────────────────────────────────────────
+function selectFoodType(el,val){ document.querySelectorAll('#food-type-btns .poop-opt').forEach(b=>b.classList.remove('sel')); el.classList.add('sel'); foodTypeVal=val; }
+async function saveFood(){
+  const name=document.getElementById('food-name').value;
+  if(!name){ alert('음식 이름을 입력해주세요'); return; }
+  const type = foodTypeVal||'식사';
+  const record = { type, time:document.getElementById('food-time').value, content:name+(document.getElementById('food-amount').value?' · '+document.getElementById('food-amount').value:''), category:foodTypeVal, memo:document.getElementById('food-memo').value };
+  const saved = addRecord(selectedDate, record);
+  sendToSheet(saved);
+  closeModal('food'); renderTimeline(); updateSummaries();
+}
+
+// ── 산책 ──────────────────────────────────────────────────────
+function selectWalkType(el,val){ document.querySelectorAll('#walk-type-btns .poop-opt').forEach(b=>b.classList.remove('sel')); el.classList.add('sel'); walkTypeVal=val; }
+async function saveWalk(){
+  if(!walkTypeVal){ alert('활동 종류를 선택해주세요'); return; }
+  const min=document.getElementById('walk-min').value;
+  const record = { type:'산책', time:document.getElementById('walk-time').value, content:walkTypeVal+(min?' · '+min+'분':''), category:walkTypeVal, memo:document.getElementById('walk-memo').value };
+  const saved = addRecord(selectedDate, record);
+  sendToSheet(saved);
+  closeModal('walk'); renderTimeline(); updateSummaries();
+}
+
+// ── 지출 ──────────────────────────────────────────────────────
+function selectExpCat(el,val){ document.querySelectorAll('#expense-cat-btns .poop-opt').forEach(b=>b.classList.remove('sel')); el.classList.add('sel'); expCatVal=val; }
+async function saveExpense(){
+  const name=document.getElementById('expense-name').value;
+  const amt=document.getElementById('expense-amount').value;
+  if(!name||!amt){ alert('항목과 금액을 입력해주세요'); return; }
+  const record = { type:'지출', time:document.getElementById('expense-time').value, content:name, category:expCatVal||'기타', amount:amt, memo:document.getElementById('expense-memo').value };
+  const saved = addRecord(selectedDate, record);
+  sendToSheet(saved);
+  closeModal('expense'); renderTimeline(); updateSummaries();
+}
+
+// ── 메모 ──────────────────────────────────────────────────────
+async function saveMemo(){
+  const content=document.getElementById('memo-content').value;
+  if(!content){ alert('내용을 입력해주세요'); return; }
+  const record = { type:'메모', time:document.getElementById('memo-time').value, content };
+  const saved = addRecord(selectedDate, record);
+  sendToSheet(saved);
+  closeModal('memo'); renderTimeline(); updateSummaries();
+}
+
+// ── 캘린더 ────────────────────────────────────────────────────
+function calMove(dir){ calMonth+=dir; if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function renderCalendar(){
+  document.getElementById('cal-title').textContent=`${calYear}년 ${calMonth+1}월`;
+  document.getElementById('cal-dow-row').innerHTML=['일','월','화','수','목','금','토'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const daysInPrev=new Date(calYear,calMonth,0).getDate();
+  const totalCells=(firstDay+daysInMonth)<=35?35:42;
+  let cells='';
+  for(let i=0;i<totalCells;i++){
+    let day,month=calMonth,year=calYear,otherMonth=false;
+    if(i<firstDay){day=daysInPrev-(firstDay-1-i);month=calMonth-1;if(month<0){month=11;year=calYear-1;}otherMonth=true;}
+    else if(i>=firstDay+daysInMonth){day=i-firstDay-daysInMonth+1;month=calMonth+1;if(month>11){month=0;year=calYear+1;}otherMonth=true;}
+    else{day=i-firstDay+1;}
+    const ds=`${year}-${pad(month+1)}-${pad(day)}`;
+    const recs=getRecords(ds); const dow=i%7;
+    let cls='cal-cell';
+    if(otherMonth)cls+=' other-month';
+    if(ds===todayStr)cls+=' today';
+    if(recs.length&&ds!==selectedCalDate)cls+=' has-rec';
+    if(ds===selectedCalDate)cls+=' selected';
+    if(dow===0)cls+=' sun'; if(dow===6)cls+=' sat';
+    let dots='';
+    if(recs.length){
+      if(recs.some(r=>r.type==='약복용'))dots+=`<span class="cal-dot" style="background:#7F77DD"></span>`;
+      if(recs.some(r=>r.type==='산책'))dots+=`<span class="cal-dot" style="background:#378ADD"></span>`;
+      if(recs.some(r=>r.type==='식사'||r.type==='간식'))dots+=`<span class="cal-dot" style="background:#1D9E75"></span>`;
+      if(recs.some(r=>r.type==='구토'))dots+=`<span class="cal-dot" style="background:#E24B4A"></span>`;
+      if(recs.some(r=>r.type==='지출'))dots+=`<span class="cal-dot" style="background:#BA7517"></span>`;
+    }
+    cells+=`<div class="${cls}" onclick="calSelect('${ds}')"><div class="cal-day-num">${day}</div><div class="cal-dot-row">${dots}</div></div>`;
+  }
+  document.getElementById('cal-body').innerHTML=cells;
+  if(selectedCalDate) renderCalDetail(selectedCalDate);
+}
+function calSelect(ds){
+  selectedCalDate=selectedCalDate===ds?null:ds;
+  renderCalendar();
+  if(selectedCalDate) renderCalDetail(selectedCalDate);
+  else document.getElementById('cal-detail').style.display='none';
+}
+function renderCalDetail(ds){
+  const el=document.getElementById('cal-detail');
+  el.style.display='block';
+  const d=new Date(ds+'T00:00:00');
+  const label=d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+  const recs=getRecords(ds).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  if(!recs.length){
+    el.innerHTML=`<div class="section"><div style="font-size:13px;font-weight:500;margin-bottom:8px">${label}</div><div class="empty" style="padding:1rem">기록이 없어요</div></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="section"><div style="font-size:13px;font-weight:500;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><span>${label}</span><span style="font-size:12px;color:#aaa">${recs.length}건</span></div>${recs.map(r=>{const meta=TYPE_META[r.type]||{icon:'📌',color:'#f5f5f5'};return`<div class="tl-item"><div class="tl-icon" style="background:${meta.color}">${meta.icon}</div><div class="tl-body"><div class="tl-type">${r.type}${r.category?' · '+r.category:''}</div><div class="tl-content">${r.content||''}</div>${r.memo?`<div style="font-size:12px;color:#aaa">${r.memo}</div>`:''}</div><div class="tl-time" style="font-size:11px;color:#aaa;flex-shrink:0">${r.time||''}</div></div>`;}).join('')}</div>`;
+}
+
+// ── 기록 탭 ───────────────────────────────────────────────────
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  const dates=Object.keys(localDB).sort((a,b)=>b.localeCompare(a));
+  if(!dates.length){el.innerHTML='<div class="empty">기록이 없어요</div>';return;}
+  el.innerHTML=dates.map(ds=>{
+    const recs=localDB[ds];
+    if(!recs||!recs.length) return '';
+    const d=new Date(ds+'T00:00:00');
+    const label=d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+    const badges=[];
+    if(recs.some(r=>r.type==='약복용'))badges.push(`<span class="badge bg-purple">💊 약</span>`);
+    if(recs.some(r=>r.type==='산책'))badges.push(`<span class="badge bg-blue">🦮 산책</span>`);
+    if(recs.some(r=>r.type==='구토'))badges.push(`<span class="badge bg-red">🤮 구토</span>`);
+    const exp=recs.filter(r=>r.type==='지출').reduce((a,b)=>a+(parseInt(b.amount)||0),0);
+    if(exp>0)badges.push(`<span class="badge bg-gray">💰 ${exp.toLocaleString()}원</span>`);
+    return`<div class="tl-item" style="cursor:pointer" onclick="goDate('${ds}')">
+      <div class="tl-body">
+        <div style="font-size:13px;font-weight:500">${label}</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${badges.join('')}</div>
+        <div style="font-size:12px;color:#aaa;margin-top:3px">${recs.length}건 기록</div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:#ddd;flex-shrink:0;margin-top:4px"></i>
+    </div>`;
+  }).join('');
+}
+function toggleHistoryDetail(ds){
+  const detail = document.getElementById('detail-'+ds);
+  const chevron = document.getElementById('chevron-'+ds);
+  if(detail.style.display==='none'){
+    detail.style.display='block';
+    chevron.style.transform='rotate(180deg)';
+  } else {
+    detail.style.display='none';
+    chevron.style.transform='';
+  }
+}
+function goDate(ds){
+  selectedDate=ds;
+  document.getElementById('entry-date').value=ds;
+  updateDateLabel();
+  renderTimeline();
+  updateSummaries();
+  document.querySelectorAll('.tab').forEach((b,i)=>{i===0?b.classList.add('active'):b.classList.remove('active');});
+  document.querySelectorAll('.page').forEach((p,i)=>{i===0?p.classList.add('active'):p.classList.remove('active');});
+}
+
+// ── 통계 ──────────────────────────────────────────────────────
+function renderStats(){
+  const allRecs=Object.values(localDB).flat();
+  const dates=Object.keys(localDB).filter(d=>localDB[d]&&localDB[d].length);
+  document.getElementById('stat-days').textContent=dates.length;
+  const totalExp=allRecs.filter(r=>r.type==='지출').reduce((a,b)=>a+(parseInt(b.amount)||0),0);
+  document.getElementById('stat-expense').textContent=totalExp>0?Math.round(totalExp/1000)+'K':0;
+  document.getElementById('stat-walks').textContent=allRecs.filter(r=>r.type==='산책').length;
+
+  // 약 복용률
+  const medEl=document.getElementById('med-stat');
+  if(dates.length){
+    const rates=MED_LIST.filter(m=>m.type==='regular').map(med=>{
+      const taken=dates.filter(d=>(localDB[d]||[]).some(r=>r.type==='약복용'&&r.content&&r.content.includes(med.name))).length;
+      const rate=Math.round(taken/dates.length*100);
+      return{name:med.name,rate,taken};
+    });
+    medEl.innerHTML=rates.map(m=>`<div class="chart-row"><div class="chart-label" style="font-size:11px">${m.name}</div><div style="flex:1;background:#f0f0f0;border-radius:4px;height:16px;overflow:hidden"><div style="height:100%;width:${m.rate}%;background:${m.rate>=80?'#1D9E75':m.rate>=50?'#BA7517':'#E24B4A'};border-radius:4px"></div></div><div class="chart-val">${m.rate}%</div></div>`).join('');
+  } else medEl.innerHTML='<div class="empty">기록을 쌓으면 표시돼요</div>';
+
+  // 지출
+  const catMap={};
+  allRecs.filter(r=>r.type==='지출').forEach(r=>{const c=r.category||'기타';catMap[c]=(catMap[c]||0)+(parseInt(r.amount)||0);});
+  const cats=Object.entries(catMap).sort((a,b)=>b[1]-a[1]); const maxC=cats[0]?cats[0][1]:1;
+  document.getElementById('expense-chart').innerHTML=cats.length?cats.map(([k,v])=>`<div class="chart-row"><div class="chart-label">${k}</div><div class="chart-bar" style="width:${Math.round(v/maxC*220)}px"></div><div class="chart-val">${v.toLocaleString()}원</div></div>`).join(''):'<div class="empty">지출 기록이 없어요</div>';
+
+  // 배변
+  const poopMap={};
+  allRecs.filter(r=>r.type==='배변'&&r.category).forEach(r=>{poopMap[r.category]=(poopMap[r.category]||0)+1;});
+  const poops=Object.entries(poopMap).sort((a,b)=>b[1]-a[1]); const maxP=poops[0]?poops[0][1]:1;
+  const ab=['묽음','설사','혈변','점액'];
+  document.getElementById('poop-chart').innerHTML=poops.length?poops.map(([k,v])=>`<div class="chart-row"><div class="chart-label">${k}</div><div class="chart-bar" style="width:${Math.round(v/maxP*220)}px;background:${ab.includes(k)?'#E24B4A':'#1D9E75'}"></div><div class="chart-val">${v}회</div></div>`).join(''):'<div class="empty">배변 기록이 없어요</div>';
+}
+
+// ── 설정 & 비밀번호 ───────────────────────────────────────────
+function tryOpenSettings(){
+  if(settingsUnlocked){openModal('settings');return;}
+  document.getElementById('pw-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('pw-input').focus(),100);
+}
+function checkPw(){
+  const val=document.getElementById('pw-input').value;
+  if(val===SETTINGS_PW){settingsUnlocked=true;closePwModal();openModal('settings');}
+  else{const inp=document.getElementById('pw-input');document.getElementById('pw-err').textContent='비밀번호가 틀렸어요';inp.value='';inp.classList.add('shake');setTimeout(()=>inp.classList.remove('shake'),400);inp.focus();}
+}
+function closePwModal(){document.getElementById('pw-overlay').style.display='none';document.getElementById('pw-input').value='';document.getElementById('pw-err').textContent='';}
+function saveSheetUrl(){
+  const url=document.getElementById('sheet-url').value.trim();
+  localStorage.setItem('sheetUrl',url);
+  checkSheetConnection();
+  const st=document.getElementById('url-status');
+  st.style.display='block';st.style.color='#0F6E56';st.textContent='✓ 저장되었습니다';
+  setTimeout(()=>st.style.display='none',2000);
+}
+async function testConnection(){
+  const url=document.getElementById('sheet-url').value.trim();
+  const st=document.getElementById('url-status');
+  st.style.display='block'; st.style.color='#888'; st.textContent='테스트 중...';
+  try {
+    await fetch(url+'?check=1', { method:'GET', mode:'no-cors' });
+    st.style.color='#0F6E56'; st.textContent='✓ 연결 성공!';
+    setSyncStatus('ok');
+  } catch(e) {
+    st.style.color='#E24B4A'; st.textContent='✗ 연결 실패. URL을 확인해주세요.';
+  }
+}
+async function loadFromSheet(){
+  const url=localStorage.getItem('sheetUrl');
+  if(!url){alert('URL을 먼저 설정해주세요');return;}
+  alert('시트에서 불러오는 기능은 준비 중이에요!');
+}
+</script>
+</body>
+</html>
