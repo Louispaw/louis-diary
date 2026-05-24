@@ -494,13 +494,9 @@ updateDateLabel();
 buildMedGrid();
 renderTimeline();
 updateSummaries();
-// URL 초기 로드
-const storedUrl = localStorage.getItem('sheetUrl') || SHEET_URL;
-localStorage.setItem('sheetUrl', storedUrl);
-document.getElementById('sheet-url').value = storedUrl;
-// URL 있으면 바로 연결됨으로 표시
-if(storedUrl) setSyncStatus('ok');
-else setSyncStatus('');
+// 구글 폼 방식 - 항상 연결됨
+setSyncStatus('ok');
+document.getElementById('sheet-url').value = 'https://docs.google.com/forms/d/e/1FAIpQLSc5jY2787NDVgwpR8t33zU8kzwNjG1U2WKsBhkpPXlKT4ucdQ/formResponse';
 
 // 시간 기본값 설정
 function nowTime() {
@@ -521,37 +517,28 @@ function setSyncStatus(state, msg) {
 }
 
 async function checkSheetConnection() {
-  const url = localStorage.getItem('sheetUrl');
-  if(!url){ setSyncStatus(''); return; }
-  try {
-    // no-cors라 응답 못 읽으므로 URL이 있으면 연결된 것으로 표시
-    await fetch(url + '?check=1', { method:'GET', mode:'no-cors' });
-    setSyncStatus('ok');
-  } catch(e) {
-    setSyncStatus('error');
-  }
+  // 구글 폼 방식은 항상 연결됨
+  setSyncStatus('ok');
 }
 
 function sendToSheet(record) {
-  const url = localStorage.getItem('sheetUrl');
-  if(!url) return;
   setSyncStatus('syncing');
-  const payload = {
-    action: 'save',
-    date: record.date || '',
-    who: record.who || '',
-    type: record.type || '',
-    content: record.content || '',
-    category: record.category || '',
-    amount: record.amount || '',
-    time: record.time || '',
-    memo: record.memo || ''
-  };
-  fetch(url, {
+  // 구글 폼으로 제출 (CORS 완전 우회)
+  const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc5jY2787NDVgwpR8t33zU8kzwNjG1U2WKsBhkpPXlKT4ucdQ/formResponse';
+  const params = new URLSearchParams({
+    'entry.1975245670': record.date || '',
+    'entry.278068599':  record.type || '',
+    'entry.153678444':  record.content || '',
+    'entry.1442582572': record.category || '',
+    'entry.1657753363': record.amount || '',
+    'entry.456928366':  record.time || '',
+    'entry.2029808488': record.memo || ''
+  });
+  fetch(formUrl, {
     method: 'POST',
     mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(payload)
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString()
   }).then(() => {
     setSyncStatus('ok');
   }).catch(() => {
