@@ -817,15 +817,39 @@ function renderHistory(){
     if(recs.some(r=>r.type==='구토'))badges.push(`<span class="badge bg-red">🤮 구토</span>`);
     const exp=recs.filter(r=>r.type==='지출').reduce((a,b)=>a+(parseInt(b.amount)||0),0);
     if(exp>0)badges.push(`<span class="badge bg-gray">💰 ${exp.toLocaleString()}원</span>`);
-    return`<div class="tl-item" style="cursor:pointer" onclick="goDate('${ds}')">
-      <div class="tl-body">
-        <div style="font-size:13px;font-weight:500">${label}</div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${badges.join('')}</div>
-        <div style="font-size:12px;color:#aaa;margin-top:3px">${recs.length}건 기록</div>
+    const sorted=[...recs].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    const detail=sorted.map(r=>{
+      const meta=TYPE_META[r.type]||{icon:'📌',color:'#f5f5f5'};
+      return `<div class="tl-item" style="padding:8px 0;border-bottom:0.5px solid #f5f5f5">
+        <div class="tl-icon" style="background:${meta.color};width:30px;height:30px;font-size:15px;flex-shrink:0">${meta.icon}</div>
+        <div class="tl-body">
+          <div style="font-size:11px;color:#888">${r.type}${r.category?' · '+r.category:''} ${r.time?'· '+r.time:''}</div>
+          <div style="font-size:13px;font-weight:500;margin-top:1px">${r.content||''}</div>
+          ${r.memo?`<div style="font-size:12px;color:#aaa;margin-top:2px">${r.memo}</div>`:''}
+          ${r.amount?`<div style="font-size:12px;color:#BA7517;margin-top:2px;font-weight:500">${parseInt(r.amount).toLocaleString()}원</div>`:''}
+        </div>
+        <button onclick="event.stopPropagation();deleteHistoryEntry('${ds}','${r.id}')" style="background:none;border:none;color:#ddd;cursor:pointer;font-size:18px;padding:4px;flex-shrink:0">×</button>
+      </div>`;
+    }).join('');
+    return`<div style="border-bottom:0.5px solid #f0f0f0;padding-bottom:12px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:4px 0" onclick="toggleHistoryDetail('${ds}')">
+        <div>
+          <div style="font-size:13px;font-weight:500">${label}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${badges.join('')}</div>
+          <div style="font-size:12px;color:#aaa;margin-top:3px">${recs.length}건 기록</div>
+        </div>
+        <i class="ti ti-chevron-down" id="chevron-${ds}" style="color:#ccc;flex-shrink:0;transition:transform .2s"></i>
       </div>
-      <i class="ti ti-chevron-right" style="color:#ddd;flex-shrink:0;margin-top:4px"></i>
+      <div id="detail-${ds}" style="display:none;margin-top:8px;border-top:0.5px solid #f5f5f5;padding-top:4px">${detail}</div>
     </div>`;
   }).join('');
+}
+
+function deleteHistoryEntry(ds, id) {
+  if(!confirm('이 기록을 삭제할까요?')) return;
+  deleteRecord(ds, id);
+  renderHistory();
+  if(ds === selectedDate) { renderTimeline(); updateSummaries(); }
 }
 function toggleHistoryDetail(ds){
   const detail = document.getElementById('detail-'+ds);
